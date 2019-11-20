@@ -9,11 +9,11 @@ SERVICE_DAEMONIZE=1
   
 start() {
          ipset create iptv nethash
-         service_start /root/iptv.sh
+         service_start /root/easyiptv/easyiptv.sh
 }
   
 stop() {
-         service_stop /root/iptv.sh
-         ipset destroy iptv
+         service_stop /root/easyiptv/easyiptv.sh
+         ipset flush iptv
          killall logread
 }

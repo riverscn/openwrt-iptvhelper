@@ -1,0 +1,19 @@
+#!/bin/sh /etc/rc.common
+  
+START=96
+  
+SERVICE_USE_PID=1
+SERVICE_WRITE_PID=1
+SERVICE_DAEMONIZE=1
+  
+  
+start() {
+         ipset create iptv nethash
+         service_start /root/iptv.sh
+}
+  
+stop() {
+         service_stop /root/iptv.sh
+         ipset destroy iptv
+         killall logread
+}

@@ -4,7 +4,7 @@ add_to_set(){
      local subnet=$ip/24
      ping -W1 -c1 $ip &> /dev/null && return
      if ! ipset -q test iptv $subnet; then
-         ipset add iptv $subnet
+         ipset add iptv $subnet timeout 2147483
          echo added $subnet to set iptv
      fi
 }

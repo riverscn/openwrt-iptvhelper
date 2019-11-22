@@ -6,14 +6,15 @@ SERVICE_USE_PID=1
 SERVICE_WRITE_PID=1
 SERVICE_DAEMONIZE=1
   
-  
 start() {
-         ipset create iptv nethash
-         service_start /root/easyiptv/easyiptv.sh
+    if ! ipset -q list iptv >/dev/null; then
+        ipset create iptv nethash
+    fi
+    service_start /root/easyiptv/easyiptv.sh
 }
   
 stop() {
-         service_stop /root/easyiptv/easyiptv.sh
-         ipset flush iptv
-         killall logread
+    service_stop /root/easyiptv/easyiptv.sh
+    ipset flush iptv
+    killall logread
 }

@@ -1,3 +1,5 @@
+. /lib/functions.sh
+
 _ipt() {
      cmd="$(echo "$@" | sed 's|-A|-D|g;s|-I|-D|g')"
      while iptables $cmd &>/dev/null; do
@@ -6,13 +8,18 @@ _ipt() {
      iptables $@
 }
 
-#在这里登记机顶盒的MAC地址
-IPTV_MAC='90:D8:F3:CB:91:1B'
-  
-#由于机顶盒虽然可以从路由器获取IP，网关，但它的dns
-#总是固定在2个联通的预设值，所以需要劫持机顶盒的dns请求到路由器的dns。
-_ipt -t nat -A PREROUTING -m mac --mac-source $IPTV_MAC -p udp --dport 53 -j REDIRECT --to-ports  53
-  
-#我们需要把机顶盒发出的连接请求打到log里，配合我们的脚本。
-#由于仅仅记录state为NEW的包，以及没有记录进ipset的包，并不频繁，并不会影响路由器性能。
-_ipt -t nat -I PREROUTING -m mac --mac-source $IPTV_MAC -m set ! --match-set iptv dst -m conntrack --ctstate NEW -j LOG --log-prefix "easyiptv:"
+config_load easyiptv
+config_get IPTV_MAC tvbox mac
+config_get IPTV_DNS_REDIR tvbox dns_redir
+config_get IPTV_BOX tvbox
+logger 'TVBOX MAC:' $IPTV_MAC
+
+if test $IPTV_DNS_REDIR='1'; then
+    logger 'TVBOX DNS_REDIR'
+    _ipt -t nat -A PREROUTING -m mac --mac-source $IPTV_MAC -p udp --dport 53 -j REDIRECT --to-ports  53
+fi
+
+if test $IPTV_BOX='enable'; then
+    logger 'TVBOX IPSET'
+    _ipt -t nat -I PREROUTING -m mac --mac-source $IPTV_MAC -m set ! --match-set iptv dst -m conntrack --ctstate NEW -j LOG --log-prefix "easyiptv:"
+fi

@@ -9,7 +9,7 @@ add_to_set(){
      fi
 }
   
-logread -e "easyiptv" -f | \
+logread -e "iptv-helper" -f | \
      while read line; do
          ip=$(echo "$line" | sed -r 's|.*DST=([0-9.]+).*|\1|')
          echo requested $ip

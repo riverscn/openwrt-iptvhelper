@@ -8,7 +8,7 @@ _ipt() {
      iptables $@
 }
 
-config_load easyiptv
+config_load iptv-helper
 config_get IPTV_MAC tvbox mac
 config_get IPTV_DNS_REDIR tvbox dns_redir
 config_get IPTV_BOX tvbox
@@ -21,5 +21,5 @@ fi
 
 if test $IPTV_BOX='enable'; then
     logger 'TVBOX IPSET'
-    _ipt -t nat -I PREROUTING -m mac --mac-source $IPTV_MAC -m set ! --match-set iptv dst -m conntrack --ctstate NEW -j LOG --log-prefix "easyiptv:"
+    _ipt -t nat -I PREROUTING -m mac --mac-source $IPTV_MAC -m set ! --match-set iptv dst -m conntrack --ctstate NEW -j LOG --log-prefix "iptv-helper:"
 fi

@@ -10,11 +10,11 @@ start() {
     if ! ipset -q list iptv >/dev/null; then
         ipset create iptv nethash
     fi
-    service_start /root/easyiptv/easyiptv.sh
+    service_start /root/iptv-helper/iptv-helper.sh
 }
   
 stop() {
-    service_stop /root/easyiptv/easyiptv.sh
+    service_stop /root/iptv-helper/iptv-helper.sh
     ipset flush iptv
     killall logread
 }

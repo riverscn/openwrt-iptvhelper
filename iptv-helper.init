@@ -1,0 +1,129 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006-2014 OpenWrt.org
+
+START=95
+USE_PROCD=1
+
+_ipt() {
+     cmd="$(echo "$@" | sed 's|-A|-D|g;s|-I|-D|g')"
+     while iptables $cmd &>/dev/null; do
+         :
+     done
+     iptables $@
+}
+
+start_iptv_helper() {
+    local cfg="$1"
+    local aux
+
+	config_get_bool aux "$cfg" 'disabled' '0'
+	[ "$aux" = 1 ] && return 1
+
+    local IPTV_MAC
+    local IPTV_DNS_REDIR
+    local IPTV_IPSET
+
+    config_get IPTV_MAC $cfg mac
+    config_get IPTV_DNS_REDIR $cfg dns_redir
+    config_get IPTV_IPSET $cfg ipset
+    logger 'TVBOX MAC:' $IPTV_MAC
+
+    if [[ $IPTV_DNS_REDIR == '1' ]]
+    then
+        logger 'TVBOX DNS_REDIR ADD'
+        _ipt -t nat -A PREROUTING -m mac --mac-source $IPTV_MAC -m comment --comment "iptv-helper-rule" -p udp --dport 53 -j REDIRECT --to-ports 53
+    fi
+
+    if [[ $IPTV_IPSET='1' ]]
+    then
+        logger 'TVBOX IPSET ADD'
+        _ipt -t nat -I PREROUTING -m mac --mac-source $IPTV_MAC  -m comment --comment "iptv-helper-rule" -m set ! --match-set iptv-helper_$cfg dst -m conntrack --ctstate NEW -j LOG --log-prefix "iptv-helper.$cfg:"
+    fi
+}
+
+destroy_iptv_ipset() {
+        for ip_set in $(ipset list | awk '/iptv-helper/ {print $2}'); do ipset destroy $ip_set; done
+}
+
+clear_iptv_rules() {
+        iptables-save --counters | grep -v "iptv-helper-rule" | iptables-restore --counters
+}
+
+append_arg() {
+	local cfg="$1"
+	local var="$2"
+	local opt="$3"
+	local def="$4"
+	local val
+
+	config_get val "$cfg" "$var"
+	[ -n "$val" -o -n "$def" ] && procd_append_param command $opt "${val:-$def}"
+}
+
+append_bool() {
+	local cfg="$1"
+	local var="$2"
+	local opt="$3"
+	local def="$4"
+	local val
+
+	config_get_bool val "$cfg" "$var" "$def"
+	[ "$val" = 1 ] && procd_append_param command "$opt"
+}
+
+start_instance() {
+	local cfg="$1"
+	local aux
+
+	config_get_bool aux "$cfg" 'disabled' '0'
+	[ "$aux" = 1 ] && return 1
+
+    if ! ipset -q list iptv-helper_$cfg >/dev/null; then
+		ipset create iptv-helper_$cfg nethash
+	fi
+
+	logger 'CONFIG:' $cfg
+    start_iptv_helper $cfg
+
+	procd_open_instance
+	procd_set_param command /usr/sbin/iptv-helper.sh $cfg
+	config_get_bool aux "$cfg" 'respawn' '0'
+	[ "$aux" = 1 ] && procd_set_param respawn
+	procd_set_param pidfile /var/run/iptv-helper_$cfg.pid
+	procd_close_instance
+}
+
+service_triggers() { 
+	procd_add_reload_trigger "iptv-helper" 
+}
+
+start_service() {
+    logger "Start iptv-helper"
+	echo "Start iptv-helper"
+	config_load iptv-helper
+	config_foreach start_instance tvbox
+    if ! uci -q get firewall.iptv_helper >/dev/null; then
+		uci set firewall.iptv_helper=include
+        uci set firewall.iptv_helper.type='script'
+        uci set firewall.iptv_helper.path='/etc/firewall.iptv-helper'
+        uci set firewall.iptv_helper.family='any'
+        uci set firewall.iptv_helper.reload='1'
+	fi
+}
+
+stop_service() {
+    if uci -q get firewall.iptv_helper >/dev/null; then
+		uci delete firewall.iptv_helper
+	fi
+	for pid in $(ps | grep -v awk | awk '/iptv-helper.sh/ {print $1}'); do kill -9 $pid; done
+	for pid in $(ps | grep -v awk | awk '/logread -e iptv-helper/ {print $1}'); do kill -9 $pid; done
+	clear_iptv_rules
+	destroy_iptv_ipset
+    logger "iptv-helper Stopped"
+	echo "iptv-helper Stopped"
+}
+
+reload_service() 
+{
+    /etc/init.d/firewall restart
+}

@@ -1,0 +1,2 @@
+#!/bin/sh
+test -s "/etc/init.d/iptv-helper" && /etc/init.d/iptv-helper restart

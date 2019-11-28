@@ -1,7 +1,7 @@
 config tvbox 'default'
 	option disabled '0'
 	option respawn '1'
-	option mac '90:D8:F3:CB:91:1B'
+	option mac '00:00:00:00:00:00'
 	option ipset '1'
 	option dns_redir '1'
 

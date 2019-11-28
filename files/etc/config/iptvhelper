@@ -1,5 +1,5 @@
 config tvbox 'default'
-	option disabled '0'
+	option disabled '1'
 	option respawn '1'
 	option mac '00:00:00:00:00:00'
 	option ipset '1'

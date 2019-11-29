@@ -3,15 +3,15 @@
 
 local sys = require "luci.sys"
 
-m = Map("iptvhelper", translate("iptvhelper"), translate("Help you configure IPTV easily."))
+m = Map("iptvhelper", translate("IPTV Helper"), translate("Help you configure IPTV easily. https://github.com/riverscn/openwrt-iptvhelper"))
 
 s = m:section(TypedSection, "tvbox", translate("IPTV topbox parameters."))
 s.addremove = true
 s.anonymous = false
 
 enable=s:option(Flag, "disabled", translate("Enabled"))
-enable.enabled="0"
-enable.disabled="1"
+enable.enabled = "0"
+enable.disabled = "1"
 enable.default = "1"
 enable.rmempty = false
 respawn=s:option(Flag, "respawn", translate("Respawn"))

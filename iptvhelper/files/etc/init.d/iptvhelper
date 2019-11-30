@@ -59,7 +59,7 @@ start_instance() {
     config_get IPTV_MAC $cfg mac
     config_get IPTV_DNS_REDIR $cfg dns_redir
     config_get IPTV_IPSET $cfg ipset
-    logger "iptvhelper.$cfg: topbox mac=" $IPTV_MAC
+    logger "iptvhelper.$cfg: topbox mac=$IPTV_MAC"
 
     if [[ $IPTV_DNS_REDIR == '1' ]]; then
         logger "iptvhelper.$cfg: topbox DNS redierct enabled"

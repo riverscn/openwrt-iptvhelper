@@ -3,9 +3,9 @@
 
 local sys = require "luci.sys"
 
-m = Map("iptvhelper", translate("IPTV Helper"), translate("Help you configure IPTV easily. https://github.com/riverscn/openwrt-iptvhelper"))
+m = Map("iptvhelper", translate("IPTV Helper"), translate("Help you configure IPTV easily. <a href=\"https://github.com/riverscn/openwrt-iptvhelper\">Github</a>"))
 
-s = m:section(TypedSection, "tvbox", translate("IPTV topbox parameters."))
+s = m:section(TypedSection, "tvbox", translate("IPTV topbox parameters"))
 s.addremove = true
 s.anonymous = false
 
@@ -25,7 +25,8 @@ dns_redir.default = false
 
 host = s:option(Value, "mac", translate("Topbox MAC Address"),
 	translate("It is usually on the bottom side of topbox."))
-
+host.rmempty = false
+host.datatype = "macaddr"
 sys.net.mac_hints(function(mac, name)
 	host:value(mac, "%s (%s)" %{ mac, name })
 end)

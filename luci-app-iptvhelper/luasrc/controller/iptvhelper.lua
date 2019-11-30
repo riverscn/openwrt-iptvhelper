@@ -1,5 +1,5 @@
 -- Copyright 2019 Shun Li <riverscn@gmail.com>
--- Licensed to the public under GPL3
+-- Licensed to the public under the GNU General Public License v3.
 
 module("luci.controller.iptvhelper", package.seeall)
 

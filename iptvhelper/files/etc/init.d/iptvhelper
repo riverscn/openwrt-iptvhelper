@@ -50,7 +50,7 @@ start_instance() {
 	config_get_bool aux "$cfg" 'disabled' '0'
 	[ "$aux" = 1 ] && return 1
 
-	logger 'CONFIG:' $cfg
+	logger "iptvhelper.$cfg: instance starting"
 
 	local IPTV_MAC
 	local IPTV_DNS_REDIR
@@ -59,17 +59,17 @@ start_instance() {
 	config_get IPTV_MAC $cfg mac
 	config_get IPTV_DNS_REDIR $cfg dns_redir
 	config_get IPTV_IPSET $cfg ipset
-	logger 'TVBOX MAC:' $IPTV_MAC
+	logger "iptvhelper.$cfg: topbox mac=" $IPTV_MAC
 
 	if [[ $IPTV_DNS_REDIR == '1' ]]
 	then
-		logger 'TVBOX DNS_REDIR ADD'
+		logger "iptvhelper.$cfg: topbox DNS redierct enabled"
 		_ipt -t nat -A PREROUTING -m mac --mac-source $IPTV_MAC -m comment --comment "iptvhelper-rule" -p udp --dport 53 -j REDIRECT --to-ports 53
 	fi
 
 	if [[ $IPTV_IPSET='1' ]]
 	then
-		logger 'TVBOX IPSET ADD'
+		logger "iptvhelper.$cfg: topbox ipset enabled"
 		if ! ipset -q list iptvhelper_$cfg >/dev/null; then
 			ipset create iptvhelper_$cfg nethash
 		fi
@@ -88,8 +88,8 @@ service_triggers() {
 }
 
 start_service() {
-	logger "Start iptvhelper"
-	echo "Start iptvhelper"
+	logger "iptvhelper: starting"
+	echo "iptvhelper: starting"
 	config_load iptvhelper
 	config_foreach start_instance tvbox
 	if uci -q show firewall >/dev/null; then
@@ -117,14 +117,14 @@ stop_service() {
 	for pid in $(ps | grep -v awk | awk '/logread -e iptvhelper/ {print $1}'); do kill -9 $pid; done
 	clear_iptv_rules
 	destroy_iptv_ipset
-	logger "iptvhelper Stopped"
-	echo "iptvhelper Stopped"
+	logger "iptvhelper: stopped"
+	echo "iptvhelper: stopped"
 }
 
 reload_service()
 {
-		logger "iptvhelper Restart"
-		echo "iptvhelper Restart"
+		logger "iptvhelper: reloading"
+		echo "iptvhelper: reloading"
 		stop
 		start
 }

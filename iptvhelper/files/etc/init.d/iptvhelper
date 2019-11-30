@@ -14,11 +14,11 @@ _ipt() {
 }
 
 destroy_iptv_ipset() {
-		for ip_set in $(ipset list | awk '/iptvhelper/ {print $2}'); do ipset destroy $ip_set; done
+	for ip_set in $(ipset list | awk '/iptvhelper/ {print $2}'); do ipset destroy $ip_set; done
 }
 
 clear_iptv_rules() {
-		iptables-save --counters | grep -v "iptvhelper-rule" | iptables-restore --counters
+	iptables-save --counters | grep -v "iptvhelper-rule" | iptables-restore --counters
 }
 
 append_arg() {
@@ -61,19 +61,17 @@ start_instance() {
 	config_get IPTV_IPSET $cfg ipset
 	logger "iptvhelper.$cfg: topbox mac=" $IPTV_MAC
 
-	if [[ $IPTV_DNS_REDIR == '1' ]]
-	then
+	if [[ $IPTV_DNS_REDIR == '1' ]]; then
 		logger "iptvhelper.$cfg: topbox DNS redierct enabled"
 		_ipt -t nat -A PREROUTING -m mac --mac-source $IPTV_MAC -m comment --comment "iptvhelper-rule" -p udp --dport 53 -j REDIRECT --to-ports 53
 	fi
 
-	if [[ $IPTV_IPSET='1' ]]
-	then
+	if [[ $IPTV_IPSET='1' ]]; then
 		logger "iptvhelper.$cfg: topbox ipset enabled"
 		if ! ipset -q list iptvhelper_$cfg >/dev/null; then
 			ipset create iptvhelper_$cfg nethash
 		fi
-		_ipt -t nat -I PREROUTING -m mac --mac-source $IPTV_MAC  -m comment --comment "iptvhelper-rule" -m set ! --match-set iptvhelper_$cfg dst -m conntrack --ctstate NEW -j LOG --log-prefix "iptvhelper.$cfg:"
+		_ipt -t nat -I PREROUTING -m mac --mac-source $IPTV_MAC -m comment --comment "iptvhelper-rule" -m set ! --match-set iptvhelper_$cfg dst -m conntrack --ctstate NEW -j LOG --log-prefix "iptvhelper.$cfg:"
 		procd_open_instance
 		procd_set_param command /usr/sbin/iptvhelper.sh $cfg
 		config_get_bool aux "$cfg" 'respawn' '0'
@@ -83,8 +81,8 @@ start_instance() {
 	fi
 }
 
-service_triggers() { 
-	procd_add_reload_trigger "iptvhelper" 
+service_triggers() {
+	procd_add_reload_trigger "iptvhelper"
 }
 
 start_service() {
@@ -121,10 +119,9 @@ stop_service() {
 	echo "iptvhelper: stopped"
 }
 
-reload_service()
-{
-		logger "iptvhelper: reloading"
-		echo "iptvhelper: reloading"
-		stop
-		start
+reload_service() {
+	logger "iptvhelper: reloading"
+	echo "iptvhelper: reloading"
+	stop
+	start
 }

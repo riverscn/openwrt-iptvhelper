@@ -19,3 +19,7 @@
 
 * 欢迎提供你所在地区的IPTV的情况，考虑给本项目增加更多功能。
 * 写wiki收集各地IPTV的用法。
+
+# 安装方法
+
+建议使用 immortalwrt 编译镜像。[这里](https://github.com/riverscn/build-openwrt-firmware)你能找到我预编译好的镜像，或自定义编译自己的镜像。
